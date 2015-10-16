@@ -25,10 +25,14 @@ var startHeight;
 var stage = 0;
 var player = 0;
 
-var choose1 = "Player 1: Choose your candidate!";
-var choose2 = "Now, Player 2: Choose your candidate!";
+
 var errorMsg = "Candidate already in play, choose again!";
 var error = false;
+
+var scoreLeft;
+var scoreRight;
+
+var trumpLog;
 
 function preload() {
   trump.img = loadImage("assets/trumphead.png");
@@ -36,7 +40,25 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(1280, 600);
+
+  //create blue background 
+  var myCanvas = createCanvas(1200, 600);
+  myCanvas.parent('myContainer');
+  
+  scoreLeft = createP(" ");
+  scoreLeft.parent('myContainer');
+  scoreLeft.class('score left');
+  
+  trumpLog = createP(" ");
+  trumpLog.parent('myContainer');
+  trumpLog.class('score center');
+  
+  scoreRight = createP(" ");
+  scoreRight.parent('myContainer');
+  scoreRight.class('score right');
+  
+  
+  
   smooth();
   
   imageMode(CENTER);
@@ -137,8 +159,10 @@ function pickPlayer() {
   textStyle(CENTER);
   
   if (player === 0) {
+    var choose1 = "Player 1: Choose your candidate!";
     text(choose1, width/2, height/3, 600, 100);
   } else {
+    var choose2 = "Now, Player 2: Choose your candidate!";
     text(choose2, width/2, height/3, 800, 100);
   }
   
@@ -155,7 +179,17 @@ function keyTyped() {
     if (paddleL === undefined) {
       paddleL = candidates[key];
       player += 1;
-      console.log(player);
+      
+      ga('send', {
+        hitType: 'event',
+        eventCategory: 'Paddles',
+        eventAction: 'Left Paddle',
+        eventLabel: paddleL.name,
+      });
+      
+      console.log(paddleL.name);
+      
+      
     } else if (paddleR === undefined) {
       if (candidates[key].name === paddleL.name) {
         error = true;
@@ -163,6 +197,15 @@ function keyTyped() {
           paddleR = candidates[key];
           stage += 1;
           setBoard();
+        
+        ga('send', {
+          hitType: 'event',
+          eventCategory: 'Paddles',
+          eventAction: 'Right Paddle',
+          eventLabel: paddleR.name,
+        });  
+          
+        console.log(paddleR.name);  
       }
     } 
    
@@ -188,7 +231,7 @@ function playGame() {
   // define candidates starting positions
   paddleL.display();
   paddleR.display();
-
+  
 
   // paddleL up and down controls 
   if (keyIsDown(65)) {
@@ -229,14 +272,16 @@ function playGame() {
   // bounce trump off paddleL paddle
   if (trump.x >= getLeft(paddleL) && trump.x <= getRight(paddleL)) {
     if (trump.y >= getTop(paddleL) && trump.y <= getBottom(paddleL)){
-    trump.speedx = Math.abs(trump.speedx) * 1.1;
+    trump.speedx = Math.round(Math.abs(trump.speedx) * 1.1);
+    updateSpeed();
     } 
   }
   
   // bounce trump off paddleR paddle
   if (trump.x >= getLeft(paddleR) && trump.x <= getRight(paddleR)) {
     if (trump.y >= getTop(paddleR) && trump.y <= getBottom(paddleR)){
-    trump.speedx = Math.abs(trump.speedx) * -1.1;
+    trump.speedx = Math.round(Math.abs(trump.speedx) * -1.1);
+    updateSpeed();
     } 
   }
   
@@ -273,6 +318,7 @@ function Candidate(tempName,tempX, tempY, tempW, tempH) {
   this.y = tempY;
   this.w = tempW;
   this.h = tempH;
+  this.score = 0;
 
   this.load = function () {
     this.img = loadImage("assets/"+this.name+".png"); 
@@ -282,12 +328,17 @@ function Candidate(tempName,tempX, tempY, tempW, tempH) {
     image(this.img, this.x, this.y, this.w, this.h);
   };
   
+  this.upperCase = function() {
+    return this.name.charAt(0).toUpperCase() + this.name.slice(1);
+    
+  }
+  
   this.lineUp = function(i) {
-    this.x = width/8 + 120 * i;
+    this.x = width/10 + 120 * i;
     this.y = height/2;
     textSize(20);
     textAlign(CENTER);
-    text(i+" - "+this.name, this.x, this.y+100);
+    text(i+" - "+this.upperCase(), this.x, this.y+110);
   }
   
   this.wins = function() {
@@ -296,9 +347,6 @@ function Candidate(tempName,tempX, tempY, tempW, tempH) {
 }
   
   
-
-
-
 // board setup
 function setBoard() {
     paddleL.img = loadImage("assets/"+paddleL.name+".png"); 
@@ -316,6 +364,10 @@ function setBoard() {
     
     trump.speedx = trumpSpeed;
     trump.speedy = trumpSpeed;
+    
+    updateScore();
+    updateSpeed();
+    
 }
 
 // Trump movements
@@ -369,9 +421,30 @@ function declareWinner(winner) {
   textAlign(CENTER);
   text(winner.wins(), width/2, height/2, 500, 200);
   
+  winner.score++;
+  updateScore();
+  
+  ga('send', {
+  hitType: 'event',
+  eventCategory: 'Winners',
+  eventAction: 'WinnerDeclaration',
+  eventLabel: winner.name,
+});
+  
   stage +=1;
 }
 
+//Update Score 
+function updateScore() {
+  scoreLeft.html(paddleL.name+": "+paddleL.score);
+  scoreRight.html(paddleR.name+": "+paddleR.score);
+}
+
+//Update Speed 
+function updateSpeed() {
+  trumpLog.html("Trump Speed: "+Math.abs(trump.speedx));
+  console.log(Math.abs(trump.speedx));
+}
 
 
 
