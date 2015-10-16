@@ -16,7 +16,7 @@ var trumpSpeed = 8;
 var paddleSpeed = 6;
 
 var instructions = "Player 1 \nA = move up\nZ = move down\n\n\nPress any key to begin.";
-var instructions2 = "Player 2 \nUp Arrow = move up \nDown Arrow = move down";
+var instructions2 = "Player 2 \nK = move up \nM = move down";
 var replay = "Press ENTER to play again.";
 var welcome = "Trumpong!";
 var star;
@@ -107,7 +107,7 @@ function setup() {
 }
 
 function draw() {
-  
+
   if (stage === 0) {
     homeScreen();
   }
@@ -243,11 +243,11 @@ function playGame() {
   }
   
   // paddleR up and down controls
-  if (keyIsDown(UP_ARROW)) {
+  if (keyIsDown(75)) {
     paddleUp(paddleR);
   }
   
-  if (keyIsDown(DOWN_ARROW)) {
+  if (keyIsDown(77)) {
     paddleDown(paddleR);
   }
   
